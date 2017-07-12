@@ -12,7 +12,7 @@ import (
 	"github.com/wcharczuk/go-chart"
 )
 
-func draw(iot []trends.IotResult) chart.Chart {
+func draw(qs []string, iot []trends.IotResult) chart.Chart {
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Style: chart.Style{
@@ -37,15 +37,20 @@ func draw(iot []trends.IotResult) chart.Chart {
 		}
 
 		graph.Series = append(graph.Series, chart.ContinuousSeries{
+			Name:    qs[i],
 			XValues: x,
 			YValues: y,
 		})
 	}
 
+	graph.Elements = []chart.Renderable{
+		chart.Legend(&graph),
+	}
+
 	return graph
 }
 
-func index(res http.ResponseWriter, req *http.Request) {
+func svgHandle(res http.ResponseWriter, req *http.Request) {
 	q, ok := req.URL.Query()["q"]
 	if !ok || len(q) == 0 {
 		fmt.Fprintln(res, "?q=foo,bar")
@@ -65,13 +70,42 @@ func index(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.Header().Set("Content-Type", chart.ContentTypeSVG)
-	draw(iot).Render(chart.SVG, res)
+	draw(qs, iot).Render(chart.SVG, res)
+}
+
+func csvHandle(res http.ResponseWriter, req *http.Request) {
+	q, ok := req.URL.Query()["q"]
+	if !ok || len(q) == 0 {
+		fmt.Fprintln(res, "?q=foo,bar")
+		return
+	}
+	log.Println(q)
+	qs := strings.Split(q[0], ",")
+
+	iot, err := trends.InterestOverTime(qs...)
+	if err != nil {
+		fmt.Fprintln(res, err)
+		return
+	}
+	fmt.Fprint(res, "time")
+	for _, q := range qs {
+		fmt.Fprintf(res, ",%s", q)
+	}
+	fmt.Fprintln(res)
+	for _, r := range iot {
+		fmt.Fprint(res, r.Time.Format("2006-02-01"))
+		for _, v := range r.Values {
+			fmt.Fprintf(res, ",%d", v)
+		}
+		fmt.Fprintln(res)
+	}
 }
 
 func main() {
 	host := flag.String("host", ":8080", "Host")
 	flag.Parse()
 
-	http.HandleFunc("/", index)
+	http.HandleFunc("/", svgHandle)
+	http.HandleFunc("/csv", csvHandle)
 	http.ListenAndServe(*host, nil)
 }
