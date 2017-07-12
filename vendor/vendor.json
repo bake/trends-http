@@ -1,0 +1,8 @@
+{
+	"rootPath": "github.com/BakeRolls/trends-http",
+	"heroku": {
+		"install": ["."],
+		"goVersion": "go1.8"
+	}
+}
+
