@@ -1,1 +1,1 @@
- See [trends](https://github.com/BakeRolls/trends).
+See [trends](https://github.com/BakeRolls/trends).
