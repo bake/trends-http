@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/BakeRolls/test-http/handler"
 	"github.com/BakeRolls/trends"
+	"github.com/BakeRolls/trends-http/handler"
 	"github.com/justinas/alice"
 	"github.com/wcharczuk/go-chart"
 )
