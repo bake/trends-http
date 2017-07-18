@@ -1,9 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/BakeRolls/test-http/handler"
 	"github.com/BakeRolls/trends"
@@ -58,8 +58,9 @@ func svg(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	host := flag.String("host", ":8080", "Host")
-	flag.Parse()
+	port := os.Getenv("PORT")
+	// host := flag.String("host", ":8080", "Host")
+	// flag.Parse()
 
 	handlers := alice.New(handler.Init, handler.Log)
 	iotHandlers := handlers.Append(handler.Iot)
@@ -68,5 +69,5 @@ func main() {
 	http.Handle("/csv", iotHandlers.ThenFunc(csv))
 	http.Handle("/png", iotHandlers.ThenFunc(png))
 	http.Handle("/svg", iotHandlers.ThenFunc(svg))
-	http.ListenAndServe(*host, nil)
+	http.ListenAndServe(":"+port, nil)
 }
